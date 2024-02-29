@@ -7,11 +7,13 @@ import platform
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'E:\\Development\\ChatGLM\\model\\chatglm3-6b')
+# MODEL_PATH = os.environ.get('MODEL_PATH', '/opt/llm/model/chatglm3-6b')
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 
 tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, trust_remote_code=True)
-model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+# model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).quantize(4).cuda()
 
 os_name = platform.system()
 clear_command = 'cls' if os_name == 'Windows' else 'clear'
