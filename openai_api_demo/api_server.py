@@ -48,11 +48,14 @@ from sse_starlette.sse import EventSourceResponse
 EventSourceResponse.DEFAULT_PING_INTERVAL = 1000
 
 # set LLM path
-MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+# MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'E:\\Development\\ChatGLM\\model\\chatglm3-6b')
+# MODEL_PATH = os.environ.get('MODEL_PATH', '/opt/llm/model/chatglm3-6b')
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 
 # set Embedding Model path
-EMBEDDING_PATH = os.environ.get('EMBEDDING_PATH', 'BAAI/bge-large-zh-v1.5')
+# EMBEDDING_PATH = os.environ.get('EMBEDDING_PATH', 'BAAI/bge-large-zh-v1.5')
+EMBEDDING_PATH = os.environ.get('EMBEDDING_PATH', 'E:\\Development\\ChatGLM\\langchain-chatglm2-custom-lib\\m3e-base')
 
 
 @asynccontextmanager
@@ -227,7 +230,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
         messages=request.messages,
         temperature=request.temperature,
         top_p=request.top_p,
-        max_tokens=request.max_tokens or 1024,
+        # max_tokens=request.max_tokens or 1024,
+        max_tokens=request.max_tokens or 8192,
         echo=False,
         stream=request.stream,
         repetition_penalty=request.repetition_penalty,
@@ -522,9 +526,13 @@ def contains_custom_function(value: str) -> bool:
 
 if __name__ == "__main__":
     # Load LLM
+    # tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, trust_remote_code=True)
+    # model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, trust_remote_code=True)
     model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+    # model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).quantize(4).cuda()
 
     # load Embedding
-    embedding_model = SentenceTransformer(EMBEDDING_PATH, device="cuda")
+    # embedding_model = SentenceTransformer(EMBEDDING_PATH, device="cuda")
+    embedding_model = SentenceTransformer(EMBEDDING_PATH, device="cpu")
     uvicorn.run(app, host='0.0.0.0', port=8000, workers=1)

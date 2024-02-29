@@ -15,7 +15,8 @@ from conversation import Conversation
 
 TOOL_PROMPT = 'Answer the following questions as best as you can. You have access to the following tools:'
 
-MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'E:\\Development\\ChatGLM\\model\\chatglm3-6b')
+# MODEL_PATH = os.environ.get('MODEL_PATH', '/opt/llm/model/chatglm3-6b')
 PT_PATH = os.environ.get('PT_PATH', None)
 PRE_SEQ_LEN = int(os.environ.get("PRE_SEQ_LEN", 128))
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
@@ -137,7 +138,8 @@ class HFClient(Client):
                 model_path,
                 trust_remote_code=True,
                 config=config,
-                device_map="auto").eval()
+                # device_map="auto").eval()
+                ).quantize(4).cuda()
             # add .quantize(4).cuda() before .eval() and remove device_map="auto" to use int4 model
             prefix_state_dict = torch.load(os.path.join(pt_checkpoint, "pytorch_model.bin"))
             new_prefix_state_dict = {}
@@ -147,7 +149,8 @@ class HFClient(Client):
             print("Loaded from pt checkpoints", new_prefix_state_dict.keys())
             self.model.transformer.prefix_encoder.load_state_dict(new_prefix_state_dict)
         else:
-            self.model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+            # self.model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+            self.model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).quantize(4).cuda()
             # add .quantize(4).cuda() before .eval() and remove device_map="auto" to use int4 model
 
     def generate_stream(
@@ -161,6 +164,7 @@ class HFClient(Client):
             'role': 'system',
             'content': system if not tools else TOOL_PROMPT,
         }]
+        print(f'generate_stream_tools----------------:{tools}')
 
         if tools:
             chat_history[0]['tools'] = tools

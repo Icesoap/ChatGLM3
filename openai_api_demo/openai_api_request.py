@@ -12,7 +12,7 @@ and handle responses.
 
 from openai import OpenAI
 
-base_url = "http://127.0.0.1:8000/v1/"
+base_url = "http://127.0.0.1:8009/v1/"
 client = OpenAI(api_key="EMPTY", base_url=base_url)
 
 
@@ -93,7 +93,7 @@ def embedding():
 
 
 if __name__ == "__main__":
-    simple_chat(use_stream=False)
+    # simple_chat(use_stream=False)
     simple_chat(use_stream=True)
-    embedding()
-    function_chat()
+    # embedding()
+    # function_chat()

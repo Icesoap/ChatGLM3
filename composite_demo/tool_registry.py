@@ -12,15 +12,46 @@ from types import GenericAlias
 from typing import get_origin, Annotated
 import subprocess
 
-_TOOL_HOOKS = {}
-_TOOL_DESCRIPTIONS = {}
+from common_var import _TOOL_HOOKS
+from common_var import _TOOL_DESCRIPTIONS
 
+import pandas as pd
+import requests
+import json
+
+
+# class ToolRegistry():
+    # import sys
+    # print(sys.path)
+
+    # def __init__(self):
+    #     self._TOOL_HOOKS = {}
+    #     self._TOOL_DESCRIPTIONS = {}
+
+# from composite_demo.plugins import material_query
+# _TOOL_HOOKS = {}
+# _TOOL_DESCRIPTIONS = {}
+
+# def catch_exception(origin_func):
+#     def wrapper(*args, **kwargs):
+#         try:
+#             print("进入装饰器catch_exception")
+#             u = origin_func(*args, **kwargs)
+#             print(f'装饰器返回结果:{u}')
+#             return u
+#         except Exception:
+#             return 'an Exception raised.'
+#     return wrapper
 
 def register_tool(func: callable):
     tool_name = func.__name__
     tool_description = inspect.getdoc(func).strip()
     python_params = inspect.signature(func).parameters
     tool_params = []
+
+    # global _TOOL_HOOKS
+    # global _TOOL_DESCRIPTIONS
+
     for name, param in python_params.items():
         annotation = param.annotation
         if annotation is inspect.Parameter.empty:
@@ -52,7 +83,6 @@ def register_tool(func: callable):
 
     return func
 
-
 def dispatch_tool(tool_name: str, tool_params: dict) -> str:
     if tool_name not in _TOOL_HOOKS:
         return f"Tool `{tool_name}` not found. Please use a provided tool."
@@ -63,10 +93,8 @@ def dispatch_tool(tool_name: str, tool_params: dict) -> str:
         ret = traceback.format_exc()
     return str(ret)
 
-
 def get_tools() -> dict:
     return copy.deepcopy(_TOOL_DESCRIPTIONS)
-
 
 # Tool Definitions
 
@@ -88,33 +116,31 @@ def random_number_generator(
     import random
     return random.Random(seed).randint(*range)
 
-
-@register_tool
-def get_weather(
-        city_name: Annotated[str, 'The name of the city to be queried', True],
-) -> str:
-    """
-    Get the current weather for `city_name`
-    """
-
-    if not isinstance(city_name, str):
-        raise TypeError("City name must be a string")
-
-    key_selection = {
-        "current_condition": ["temp_C", "FeelsLikeC", "humidity", "weatherDesc", "observation_time"],
-    }
-    import requests
-    try:
-        resp = requests.get(f"https://wttr.in/{city_name}?format=j1")
-        resp.raise_for_status()
-        resp = resp.json()
-        ret = {k: {_v: resp[k][0][_v] for _v in v} for k, v in key_selection.items()}
-    except:
-        import traceback
-        ret = "Error encountered while fetching weather data!\n" + traceback.format_exc()
-
-    return str(ret)
-
+# @register_tool
+# def get_weather(
+#         city_name: Annotated[str, 'The name of the city to be queried', True],
+# ) -> str:
+#     """
+#     Get the current weather for `city_name`
+#     """
+#
+#     if not isinstance(city_name, str):
+#         raise TypeError("City name must be a string")
+#
+#     key_selection = {
+#         "current_condition": ["temp_C", "FeelsLikeC", "humidity", "weatherDesc", "observation_time"],
+#     }
+#     import requests
+#     try:
+#         resp = requests.get(f"https://wttr.in/{city_name}?format=j1")
+#         resp.raise_for_status()
+#         resp = resp.json()
+#         ret = {k: {_v: resp[k][0][_v] for _v in v} for k, v in key_selection.items()}
+#     except:
+#         import traceback
+#         ret = "Error encountered while fetching weather data!\n" + traceback.format_exc()
+#
+#     return str(ret)
 
 @register_tool
 def get_shell(
@@ -131,6 +157,49 @@ def get_shell(
         return result.stdout
     except subprocess.CalledProcessError as e:
         return e.stderr
+
+# @register_tool
+# def get_material(
+#         material_code: Annotated[str, 'The material code as a param', True],
+# ) -> pd.DataFrame:
+#     """
+#         Fetch material data from plugin,parameter is material_code
+#     """
+#     base_url = "http://localhost:8080/taskweaver/api/material_query"
+#     params = {
+#         "code": material_code,
+#         "name2": "test"
+#     }
+#
+#     try:
+#         # Send the request and parse the response
+#         # response = requests.get(base_url, params=params)
+#
+#         rows = []
+#         # response = requests.post(base_url, data=json.dumps(params))
+#         # response = requests.get(base_url, params=params)
+#         response = requests.post(base_url, data=json.dumps(params))
+#
+#         # Check if the request was successful
+#         if response.status_code == 200:
+#             # Parse the JSON response
+#             print(f'plugin-content----------:{response.content}')
+#             print(f'plugin-text----------:{response.text}')
+#             rows.append(f"{material_code},{response.text}")
+#         else:
+#             print(f"code:{response.status_code}\nmessage:{response.text}")
+#
+#
+#     except Exception as e:
+#         raise e
+#
+#     description = (
+#         "The response is a dataframe with the following columns: content. "
+#         "The attributes column is a list of tags. "
+#         # "The price is in the format of $xx.xx."
+#     )
+#     df = pd.DataFrame(rows, columns=["content"])
+#     return df
 
 
 if __name__ == "__main__":

@@ -15,7 +15,8 @@ import streamlit as st
 import torch
 from transformers import AutoModel, AutoTokenizer
 
-MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+# MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'E:\\Development\\ChatGLM\\model\\chatglm3-6b')
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 
 st.set_page_config(
@@ -29,7 +30,9 @@ st.set_page_config(
 def get_model():
 
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, trust_remote_code=True)
-    model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+    # model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+    # model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).cuda()
+    model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).quantize(4).cuda()
     return tokenizer, model
 
 

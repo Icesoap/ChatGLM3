@@ -7,7 +7,17 @@ from streamlit.delta_generator import DeltaGenerator
 
 from client import get_client
 from conversation import postprocess_text, preprocess_text, Conversation, Role
+
+
 from tool_registry import dispatch_tool, get_tools
+
+import sys
+# 要是不加这一行 会报模块composite_demo找不到错误
+sys.path.append("..")
+from composite_demo.plugins import material_query
+from composite_demo.plugins import weather_query
+
+
 
 EXAMPLE_TOOL = {
     "name": "get_current_weather",
@@ -206,3 +216,7 @@ def main(
                     postprocess_text(output_text),
                 ), history, markdown_placeholder)
                 return
+
+
+if __name__ == '__main__':
+    main("查询物料编号为wd344的物料信息")
